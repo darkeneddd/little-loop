@@ -228,10 +228,24 @@ def dashboard(db: Session = Depends(get_db)):
 
     total_garments = len(garments)
     returned = sum(1 for g in garments if g.current_status == "returned")
-    resold = sum(
-        1
-        for g in garments
-        if sum(1 for c in g.cycles if c.event_type == "purchased") >= 2
+
+    def purchase_count(g):
+        return sum(1 for c in g.cycles if c.event_type == "purchased")
+
+    resold = sum(1 for g in garments if purchase_count(g) >= 2)
+
+    # "Participants" = total families the program has served across every
+    # garment's history (each "purchased" cycle event is one family taking
+    # ownership) -- the same per-garment count Passport.jsx labels "Families
+    # served", just summed program-wide.
+    participants = sum(purchase_count(g) for g in garments)
+
+    # "Revenue generated" = resale revenue actually collected so far, i.e.
+    # the price paid for garments that have gone around the loop at least
+    # once (the same set counted in `resold`). purchase_garment() doesn't
+    # clear price on purchase, so garment.price still holds what was paid.
+    revenue_generated = round(
+        sum(g.price or 0 for g in garments if purchase_count(g) >= 2), 2
     )
 
     def durability_key(g):
@@ -260,6 +274,8 @@ def dashboard(db: Session = Depends(get_db)):
         "total_garments": total_garments,
         "returned": returned,
         "resold": resold,
+        "participants": participants,
+        "revenue_generated": revenue_generated,
         "sustainability": compute_sustainability_totals(all_cycles),
         "top_durable_garments": top_durable_payload,
         "returns_by_size": returns_by_size,
