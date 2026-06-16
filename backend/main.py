@@ -179,6 +179,37 @@ def trade_in(payload: TradeInRequest, db: Session = Depends(get_db)):
     return serialize_garment(garment, include_cycles=True)
 
 
+@app.post("/garments/{garment_id}/purchase")
+def purchase_garment(garment_id: str, db: Session = Depends(get_db)):
+    """Marketplace "Purchase" button (T12). No real checkout (per CLAUDE.md) --
+    just flips the garment from "resale" back to "active" with a new family
+    and logs a "purchased" cycle event, the same event_type seed.py uses for
+    original purchases. This is what grows a garment's "families served"
+    count on the Passport screen and the dashboard's "resold" metric (a
+    garment with >=2 purchased events has gone around the loop)."""
+    garment = db.query(models.Garment).filter(models.Garment.id == garment_id).first()
+    if garment is None:
+        raise HTTPException(status_code=404, detail="Garment not found")
+    if garment.current_status != "resale":
+        raise HTTPException(status_code=400, detail="Garment is not available for purchase")
+
+    next_cycle_number = len(garment.cycles) + 1
+    now = datetime.datetime.utcnow()
+    purchased = models.PassportCycle(
+        garment_id=garment.id,
+        cycle_number=next_cycle_number,
+        event_type="purchased",
+        timestamp=now,
+        condition_score_at_event=garment.current_condition_score,
+        notes="Purchased via Marketplace.",
+    )
+    db.add(purchased)
+    garment.current_status = "active"
+    db.commit()
+    db.refresh(garment)
+    return serialize_garment(garment, include_cycles=True)
+
+
 @app.get("/dashboard")
 def dashboard(db: Session = Depends(get_db)):
     """Aggregated stats for the Corporate Dashboard screen.

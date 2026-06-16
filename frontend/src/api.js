@@ -45,3 +45,7 @@ export function submitTradeIn(payload) {
 export function getDashboard() {
   return request('/dashboard')
 }
+
+export function purchaseGarment(id) {
+  return request(`/garments/${id}/purchase`, { method: 'POST' })
+}
