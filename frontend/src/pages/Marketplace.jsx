@@ -5,14 +5,14 @@ import { listGarments, purchaseGarment } from '../api'
 
 const SIZES = ['Newborn', '0-3M', '3-6M', '6-9M', '9-12M', '12-18M', '18-24M', '2T', '3T']
 
-// Grade label derived from condition score -- mirrors the thresholds used
-// for the Passport screen's condition-score color, just bucketed into the
-// same grade wording /assess returns (Excellent/Good/Fair/Poor).
+// Grade label derived from condition score -- mirrors assessment.py's
+// GRADE_BANDS thresholds (90/75/60/40/0) and Design.md's Grade badge colors.
+// Poor isn't in that table, so it shares Rejected's color (both "bad").
 function gradeFor(score) {
-  if (score >= 90) return { label: 'Excellent', color: 'text-green-700 bg-green-100' }
-  if (score >= 75) return { label: 'Good', color: 'text-blue-700 bg-blue-100' }
-  if (score >= 60) return { label: 'Fair', color: 'text-amber-700 bg-amber-100' }
-  return { label: 'Poor', color: 'text-red-700 bg-red-100' }
+  if (score >= 90) return { label: 'Excellent', color: 'bg-loop-green' }
+  if (score >= 75) return { label: 'Good', color: 'bg-green-dark' }
+  if (score >= 60) return { label: 'Fair', color: 'bg-warning' }
+  return { label: 'Poor', color: 'bg-danger' }
 }
 
 const emptyFilters = { size: '', condition_min: '', price_max: '' }
@@ -59,22 +59,29 @@ export default function Marketplace() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
-      <div className="flex items-center gap-3">
-        <ShoppingBag className="h-7 w-7 text-purple-600" />
-        <h1 className="text-2xl font-semibold text-gray-900">Marketplace</h1>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <ShoppingBag className="h-6 w-6 text-carter-blue" />
+          <h1 className="text-2xl font-semibold text-deep-navy">Marketplace</h1>
+        </div>
+        {!loading && (
+          <p className="text-sm text-text-muted">
+            {garments.length} garment{garments.length === 1 ? '' : 's'}
+          </p>
+        )}
       </div>
-      <p className="mt-1 text-gray-600">
+      <p className="mt-1 text-text-muted">
         Pre-loved Carter's garments, inspected and sanitized, ready for their next family.
       </p>
 
       {purchased && (
-        <div className="mt-6 flex items-start gap-3 rounded-md bg-green-50 px-4 py-3 text-sm text-green-800">
-          <CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600" />
+        <div className="mt-6 flex items-start gap-3 rounded-md bg-mint-tint px-4 py-3 text-sm text-green-dark">
+          <CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-loop-green" />
           <div>
             <p className="font-medium">
               You purchased {purchased.product_name} (size {purchased.size})!
             </p>
-            <p className="mt-0.5 text-green-700">
+            <p className="mt-0.5">
               Its passport has been updated.{' '}
               <Link to={`/passport/${purchased.id}`} className="font-semibold underline">
                 View passport
@@ -85,7 +92,7 @@ export default function Marketplace() {
       )}
 
       {error && (
-        <div className="mt-6 flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+        <div className="mt-6 flex items-center gap-2 rounded-md bg-danger-bg px-3 py-2 text-sm text-danger">
           <AlertCircle className="h-4 w-4 flex-shrink-0" />
           {error}
         </div>
@@ -93,32 +100,47 @@ export default function Marketplace() {
 
       <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-[16rem_1fr]">
         {/* Filter sidebar */}
-        <aside className="self-start rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-200">
-          <div className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+        <aside className="self-start rounded-md border-[0.5px] border-hairline bg-white p-5">
+          <div className="flex items-center gap-2 text-sm font-semibold text-deep-navy">
             <SlidersHorizontal className="h-4 w-4" />
             Filters
           </div>
 
           <div className="mt-4">
-            <label className="text-xs font-medium uppercase tracking-wide text-gray-400">
+            <p className="text-[10px] font-medium uppercase tracking-[0.08em] text-text-muted">
               Size
-            </label>
-            <select
-              value={filters.size}
-              onChange={(e) => setFilters((f) => ({ ...f, size: e.target.value }))}
-              className="mt-1 w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-            >
-              <option value="">All sizes</option>
+            </p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              <button
+                type="button"
+                onClick={() => setFilters((f) => ({ ...f, size: '' }))}
+                className={`rounded-full border-[1.5px] px-2.5 py-1 text-xs font-medium ${
+                  filters.size === ''
+                    ? 'border-carter-blue bg-sky-tint text-blue-dark'
+                    : 'border-hairline text-text-muted'
+                }`}
+              >
+                All
+              </button>
               {SIZES.map((s) => (
-                <option key={s} value={s}>
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setFilters((f) => ({ ...f, size: f.size === s ? '' : s }))}
+                  className={`rounded-full border-[1.5px] px-2.5 py-1 text-xs font-medium ${
+                    filters.size === s
+                      ? 'border-carter-blue bg-sky-tint text-blue-dark'
+                      : 'border-hairline text-text-muted'
+                  }`}
+                >
                   {s}
-                </option>
+                </button>
               ))}
-            </select>
+            </div>
           </div>
 
           <div className="mt-4">
-            <label className="text-xs font-medium uppercase tracking-wide text-gray-400">
+            <label className="text-[10px] font-medium uppercase tracking-[0.08em] text-text-muted">
               Min. condition score
             </label>
             <input
@@ -128,12 +150,12 @@ export default function Marketplace() {
               value={filters.condition_min}
               onChange={(e) => setFilters((f) => ({ ...f, condition_min: e.target.value }))}
               placeholder="e.g. 70"
-              className="mt-1 w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="mt-1 w-full rounded-md border border-hairline px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-carter-blue"
             />
           </div>
 
           <div className="mt-4">
-            <label className="text-xs font-medium uppercase tracking-wide text-gray-400">
+            <label className="text-[10px] font-medium uppercase tracking-[0.08em] text-text-muted">
               Max. price ($)
             </label>
             <input
@@ -143,14 +165,14 @@ export default function Marketplace() {
               value={filters.price_max}
               onChange={(e) => setFilters((f) => ({ ...f, price_max: e.target.value }))}
               placeholder="e.g. 10"
-              className="mt-1 w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="mt-1 w-full rounded-md border border-hairline px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-carter-blue"
             />
           </div>
 
           <button
             type="button"
             onClick={() => setFilters(emptyFilters)}
-            className="mt-5 w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className="mt-5 w-full rounded-full border border-hairline px-3 py-1.5 text-sm font-medium text-deep-navy"
           >
             Clear filters
           </button>
@@ -159,9 +181,9 @@ export default function Marketplace() {
         {/* Resale grid */}
         <div>
           {loading ? (
-            <p className="py-16 text-center text-gray-500">Loading marketplace...</p>
+            <p className="py-16 text-center text-text-muted">Loading marketplace...</p>
           ) : garments.length === 0 ? (
-            <p className="py-16 text-center text-gray-500">
+            <p className="py-16 text-center text-text-muted">
               No garments match these filters. Try widening them.
             </p>
           ) : (
@@ -171,30 +193,33 @@ export default function Marketplace() {
                 return (
                   <div
                     key={g.id}
-                    className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200"
+                    className="overflow-hidden rounded-lg border-[0.5px] border-hairline bg-white"
                   >
-                    <Link to={`/passport/${g.id}`}>
+                    <Link to={`/passport/${g.id}`} className="relative block">
                       <img
                         src={g.thumbnail_url}
                         alt={g.product_name}
                         className="h-44 w-full object-cover"
                       />
+                      <span
+                        className={`absolute right-2 top-2 rounded-full px-2 py-0.5 text-[11px] font-semibold text-white ${grade.color}`}
+                      >
+                        {grade.label}
+                      </span>
                     </Link>
                     <div className="p-4">
-                      <Link
-                        to={`/passport/${g.id}`}
-                        className="font-semibold text-gray-900 hover:text-purple-700"
-                      >
+                      <Link to={`/passport/${g.id}`} className="font-medium text-deep-navy">
                         {g.product_name}
                       </Link>
-                      <p className="mt-0.5 text-sm text-gray-500">Size {g.size}</p>
+                      <p className="mt-0.5 text-sm text-text-muted">Size {g.size}</p>
                       <div className="mt-2 flex items-center justify-between">
-                        <span
-                          className={`rounded-full px-2 py-0.5 text-xs font-semibold ${grade.color}`}
+                        <Link
+                          to={`/passport/${g.id}`}
+                          className="rounded-md bg-carter-blue px-2.5 py-1 text-[10px] font-medium text-white"
                         >
-                          {grade.label}
-                        </span>
-                        <span className="text-lg font-bold text-gray-900">
+                          View
+                        </Link>
+                        <span className="font-mono text-lg font-medium text-deep-navy">
                           ${g.price?.toFixed(2)}
                         </span>
                       </div>
@@ -202,7 +227,7 @@ export default function Marketplace() {
                         type="button"
                         onClick={() => handlePurchase(g.id)}
                         disabled={purchasing === g.id}
-                        className="mt-3 w-full rounded-md bg-purple-600 px-3 py-2 text-sm font-medium text-white hover:bg-purple-700 disabled:opacity-50"
+                        className="mt-3 w-full rounded-full bg-carter-blue px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
                       >
                         {purchasing === g.id ? 'Purchasing...' : 'Purchase'}
                       </button>

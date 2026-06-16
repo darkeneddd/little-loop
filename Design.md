@@ -159,7 +159,7 @@ The signature component. Mimics a stitched seam rather than a generic dot-connec
 
 ### Marketplace
 - Page subtitle: garment count in muted text, right-aligned.
-- Card image area: `90px` tall, colored tint background (rotate: Sky Tint, Mint Tint, Warning bg, light purple `#F0EBF8`).
+- Card image area: `90px` tall. Shows the garment's real product photo (`thumbnail_url`) — the locked palette and "no colors outside the palette" rule govern UI chrome only, not product photography. If a card has no photo, fall back to a colored tint background (rotate: Sky Tint, Mint Tint, Warning bg, light purple `#F0EBF8`).
 - Condition flag: absolute positioned top-right of image, pill badge.
 - "View" button: Carter's Blue, `10px`, `8px` radius, `5px 10px` padding.
 
