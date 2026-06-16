@@ -7,13 +7,11 @@ import {
   ClipboardCheck,
   Sparkles,
   Tag,
-  Users,
-  Droplets,
-  Cloud,
   QrCode,
   AlertCircle,
 } from 'lucide-react'
 import { getGarment } from '../api'
+import ImpactReceipt from '../components/ImpactReceipt'
 
 // Icon + label per PassportCycle.event_type (see backend/models.py).
 const EVENT_META = {
@@ -148,32 +146,13 @@ export default function Passport() {
         </div>
 
         {/* Impact metrics */}
-        <div className="grid grid-cols-1 gap-4 px-6 py-6 sm:grid-cols-3">
-          <div className="flex items-center gap-3 rounded-xl bg-blue-50 px-4 py-4">
-            <Users className="h-8 w-8 flex-shrink-0 text-blue-600" />
-            <div>
-              <p className="text-2xl font-bold text-blue-700">{familiesServed}</p>
-              <p className="text-xs text-blue-600">Families served</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 rounded-xl bg-cyan-50 px-4 py-4">
-            <Droplets className="h-8 w-8 flex-shrink-0 text-cyan-600" />
-            <div>
-              <p className="text-2xl font-bold text-cyan-700">
-                {sustainability.water_saved_liters.toLocaleString()} L
-              </p>
-              <p className="text-xs text-cyan-600">Water saved</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 rounded-xl bg-emerald-50 px-4 py-4">
-            <Cloud className="h-8 w-8 flex-shrink-0 text-emerald-600" />
-            <div>
-              <p className="text-2xl font-bold text-emerald-700">
-                {sustainability.co2_avoided_kg} kg
-              </p>
-              <p className="text-xs text-emerald-600">CO₂ avoided</p>
-            </div>
-          </div>
+        <div className="px-6 py-6">
+          <ImpactReceipt
+            familiesServed={familiesServed}
+            waterSavedLiters={sustainability.water_saved_liters}
+            co2AvoidedKg={sustainability.co2_avoided_kg}
+            wasteDivertedCount={sustainability.cycles_completed}
+          />
         </div>
       </div>
 

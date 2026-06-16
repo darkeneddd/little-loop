@@ -8,11 +8,10 @@ import {
   XCircle,
   AlertCircle,
   Gift,
-  Droplets,
-  Cloud,
   RefreshCw,
 } from 'lucide-react'
 import { getGarment, assessImage, submitTradeIn } from '../api'
+import ImpactReceipt from '../components/ImpactReceipt'
 
 const QR_REGION_ID = 'trade-in-qr-reader'
 
@@ -191,6 +190,11 @@ export default function TradeIn() {
   // per-cycle fields the Passport timeline already displays.
   const latestReward = decisionResult?.garment.cycles.flatMap((c) => c.rewards).slice(-1)[0]
   const rejectionNote = decisionResult?.garment.cycles.slice(-1)[0]?.notes
+  // Same "families served" definition Passport.jsx uses, for the approval
+  // confirmation's impact receipt (T16).
+  const familiesServed = decisionResult?.garment.cycles.filter(
+    (c) => c.event_type === 'purchased',
+  ).length
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10">
@@ -423,26 +427,13 @@ export default function TradeIn() {
                   </p>
                 </div>
               )}
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-3">
-                  <Droplets className="h-6 w-6 text-cyan-600" />
-                  <div>
-                    <p className="text-lg font-bold text-cyan-700">
-                      {decisionResult.garment.sustainability.water_saved_liters.toLocaleString()} L
-                    </p>
-                    <p className="text-xs text-cyan-600">Lifetime water saved</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-3">
-                  <Cloud className="h-6 w-6 text-emerald-600" />
-                  <div>
-                    <p className="text-lg font-bold text-emerald-700">
-                      {decisionResult.garment.sustainability.co2_avoided_kg} kg
-                    </p>
-                    <p className="text-xs text-emerald-600">Lifetime CO₂ avoided</p>
-                  </div>
-                </div>
-              </div>
+              <ImpactReceipt
+                className="mt-4"
+                familiesServed={familiesServed}
+                waterSavedLiters={decisionResult.garment.sustainability.water_saved_liters}
+                co2AvoidedKg={decisionResult.garment.sustainability.co2_avoided_kg}
+                wasteDivertedCount={decisionResult.garment.sustainability.cycles_completed}
+              />
               <p className="mt-4 text-sm text-green-700">
                 The garment is now listed on the Marketplace at $
                 {decisionResult.garment.price?.toFixed(2)}.
