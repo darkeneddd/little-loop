@@ -5,13 +5,16 @@ Run with the venv's python:
     backend/venv/Scripts/python.exe backend/seed.py
 
 Re-running this script wipes and re-creates all rows (idempotent for demo
-purposes) but leaves previously generated QR PNGs in place if a garment's id
-hasn't changed -- since ids are randomly generated UUIDs each run, QR codes
-are always regenerated too.
+purposes) -- run it any time you want to reset the demo to a known-clean
+state (before a demo, after poking at the data while testing, etc). Garment
+ids are random UUIDs regenerated every run, so every previously written QR
+PNG is stale the moment a reseed happens; main() clears static/qr/ first so
+it never accumulates orphaned PNGs pointing at ids that no longer exist.
 """
 
 import datetime
 import os
+import shutil
 
 import qrcode
 
@@ -178,6 +181,10 @@ def main():
     # Fresh tables every run.
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
+
+    # Fresh QR directory too -- old PNGs are keyed by ids this run just
+    # dropped, so leaving them in place would only accumulate orphans.
+    shutil.rmtree(QR_DIR, ignore_errors=True)
     os.makedirs(QR_DIR, exist_ok=True)
 
     db = SessionLocal()
