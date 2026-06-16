@@ -1,6 +1,76 @@
 @import "tailwindcss";
 
+/* Carter's LittleLoop design tokens -- see /Design.md. Six base colors plus
+   their documented derived values; nothing outside this palette. Overriding
+   Tailwind's own --color, --radius and --font theme vars means the plain
+   utilities (bg-carter-blue, rounded-lg, font-mono, ...) resolve straight to
+   spec instead of needing a parallel set of custom class names. */
+@theme {
+  --color-carter-blue: #00abe1;
+  --color-loop-green: #7dc242;
+  --color-deep-navy: #1a3a5c;
+  --color-sky-tint: #e3f6fd;
+  --color-cream: #f7f8fa;
+  --color-mint-tint: #eef7e3;
+
+  --color-blue-mid: #b3e5f7;
+  --color-blue-dark: #006e99;
+  --color-green-dark: #4e8a1e;
+  --color-text-muted: #6b7a8d;
+  --color-hairline: rgba(0, 0, 0, 0.08);
+  --color-warning: #e8a020;
+  --color-warning-bg: #fef3e2;
+  --color-warning-text: #92610c;
+  --color-danger: #c0392b;
+  --color-danger-bg: #fadbd8;
+  /* Marketplace card image tint rotation (Design.md "Marketplace" notes) --
+     not part of the core/derived palette tables, but explicitly named there
+     as the fourth rotation color. */
+  --color-purple-tint: #f0ebf8;
+
+  --font-sans: 'DM Sans', system-ui, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'DM Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+}
+
 body {
   margin: 0;
-  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--color-cream);
+  color: var(--color-deep-navy);
+  font-family: var(--font-sans);
+}
+
+/* Eyebrow label: 10px / 500 weight / 0.12em tracking / uppercase -- used
+   above section headings throughout (see Design.md "Fonts" rules). */
+.eyebrow {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* Passport hero: "subtle diagonal crosshatch texture" -- a fabric-weave
+   reference, not a gradient (Design.md explicitly bans gradients). Two
+   1px hairlines at +/-45deg, barely visible against Deep Navy. */
+.hero-crosshatch {
+  background-color: var(--color-deep-navy);
+  background-image:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 9px);
+}
+
+/* Lifecycle timeline thread line: a dashed seam, not a generic solid
+   connector (Design.md "Lifecycle Timeline" + "What Not To Do"). */
+.timeline-thread {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--color-blue-mid) 0,
+    var(--color-blue-mid) 4px,
+    transparent 4px,
+    transparent 8px
+  );
 }
