@@ -1,0 +1,13 @@
+backend/venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.db
+backend/static/qr/*.png
+backend/uvicorn.log
+
+frontend/node_modules/
+frontend/dist/
+
+.env
+*.env
+!.env.example
