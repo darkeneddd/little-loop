@@ -6,41 +6,33 @@ import { Users, Droplets, Cloud, Recycle } from 'lucide-react'
 // impact section or the Trade-In approval card. A tile only renders if its
 // prop is actually passed (undefined skips it), so callers that don't have
 // all four numbers handy can still use this component.
+//
+// Styling follows Design.md's "Impact chips" spec: uniform Sky Tint
+// background, DM Mono value in Blue dark, muted uppercase label -- not
+// per-metric tile colors.
 const METRICS = [
   {
     key: 'familiesServed',
     icon: Users,
     label: 'Families served',
-    tile: 'bg-blue-50',
-    text: 'text-blue-700',
-    icon_: 'text-blue-600',
     format: (v) => v,
   },
   {
     key: 'waterSavedLiters',
     icon: Droplets,
     label: 'Water saved',
-    tile: 'bg-cyan-50',
-    text: 'text-cyan-700',
-    icon_: 'text-cyan-600',
     format: (v) => `${v.toLocaleString()} L`,
   },
   {
     key: 'co2AvoidedKg',
     icon: Cloud,
     label: 'CO₂ avoided',
-    tile: 'bg-emerald-50',
-    text: 'text-emerald-700',
-    icon_: 'text-emerald-600',
     format: (v) => `${v} kg`,
   },
   {
     key: 'wasteDivertedCount',
     icon: Recycle,
-    label: 'Garments diverted from landfill',
-    tile: 'bg-violet-50',
-    text: 'text-violet-700',
-    icon_: 'text-violet-600',
+    label: 'Garments diverted',
     format: (v) => v,
   },
 ]
@@ -49,9 +41,9 @@ const METRICS = [
 // `lg:grid-cols-${n}`, so look the column count up instead.
 const LG_COLS = { 1: 'lg:grid-cols-1', 2: 'lg:grid-cols-2', 3: 'lg:grid-cols-3', 4: 'lg:grid-cols-4' }
 
-// Reusable "impact receipt" -- big numbers + Lucide icons, meant to feel
-// like a shareable card (T16). Used on the Passport screen's impact section
-// and the Employee Trade-In approval confirmation.
+// Reusable "impact receipt" -- Sky Tint chips with DM Mono numbers, meant to
+// feel like a shareable card (T16). Used on the Passport screen's impact
+// section and the Employee Trade-In approval confirmation.
 export default function ImpactReceipt({
   familiesServed,
   waterSavedLiters,
@@ -65,21 +57,23 @@ export default function ImpactReceipt({
 
   return (
     <div className={className}>
-      {title && <p className="text-sm font-semibold text-gray-900">{title}</p>}
+      {title && <p className="eyebrow text-carter-blue">{title}</p>}
       <div
-        className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${LG_COLS[tiles.length] || 'lg:grid-cols-4'} ${
+        className={`grid grid-cols-2 gap-3 ${LG_COLS[tiles.length] || 'lg:grid-cols-4'} ${
           title ? 'mt-3' : ''
         }`}
       >
         {tiles.map((m) => {
           const Icon = m.icon
           return (
-            <div key={m.key} className={`flex items-center gap-3 rounded-xl px-4 py-4 ${m.tile}`}>
-              <Icon className={`h-8 w-8 flex-shrink-0 ${m.icon_}`} />
-              <div>
-                <p className={`text-2xl font-bold ${m.text}`}>{m.format(values[m.key])}</p>
-                <p className={`text-xs ${m.icon_}`}>{m.label}</p>
-              </div>
+            <div key={m.key} className="rounded-md bg-sky-tint px-4 py-4 text-center">
+              <Icon className="mx-auto h-5 w-5 text-blue-dark" />
+              <p className="mt-2 font-mono text-[15px] font-medium text-blue-dark">
+                {m.format(values[m.key])}
+              </p>
+              <p className="mt-0.5 text-[9px] uppercase tracking-[0.06em] text-blue-dark/70">
+                {m.label}
+              </p>
             </div>
           )
         })}
