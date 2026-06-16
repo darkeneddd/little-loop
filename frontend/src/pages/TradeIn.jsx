@@ -19,20 +19,21 @@ const QR_REGION_ID = 'trade-in-qr-reader'
 // since each page still owns its own small color maps (see also
 // Marketplace.jsx's gradeFor).
 const STATUS_BADGE = {
-  active: 'bg-blue-100 text-blue-700',
-  returned: 'bg-amber-100 text-amber-700',
-  sanitizing: 'bg-purple-100 text-purple-700',
-  resale: 'bg-green-100 text-green-700',
-  retired: 'bg-gray-200 text-gray-600',
+  active: 'bg-carter-blue',
+  returned: 'bg-warning',
+  sanitizing: 'bg-blue-dark',
+  resale: 'bg-loop-green',
+  retired: 'bg-text-muted',
 }
 
-// Mirrors assessment.py's GRADE_BANDS wording.
+// Mirrors assessment.py's GRADE_BANDS wording + Design.md's Grade badge
+// colors. Poor isn't in that table, so it shares Rejected's color.
 const GRADE_BADGE = {
-  Excellent: 'bg-green-100 text-green-700',
-  Good: 'bg-blue-100 text-blue-700',
-  Fair: 'bg-amber-100 text-amber-700',
-  Poor: 'bg-orange-100 text-orange-700',
-  Rejected: 'bg-red-100 text-red-700',
+  Excellent: 'bg-loop-green',
+  Good: 'bg-green-dark',
+  Fair: 'bg-warning',
+  Poor: 'bg-danger',
+  Rejected: 'bg-danger',
 }
 
 // QR payloads may be a bare garment ID or a full passport URL.
@@ -197,38 +198,38 @@ export default function TradeIn() {
   ).length
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-10">
+    <div className="mx-auto max-w-5xl px-4 py-10">
       <div className="flex items-center gap-3">
-        <ClipboardCheck className="h-7 w-7 text-purple-600" />
-        <h1 className="text-2xl font-semibold text-gray-900">Employee Trade-In</h1>
+        <ClipboardCheck className="h-6 w-6 text-carter-blue" />
+        <h1 className="text-2xl font-semibold text-deep-navy">Employee Trade-In</h1>
       </div>
-      <p className="mt-1 text-gray-600">
+      <p className="mt-1 text-text-muted">
         Scan a garment, run the AI condition assessment, and approve or reject the trade-in.
       </p>
 
       {!garment ? (
-        <div className="mt-8 rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+        <div className="mt-8 max-w-2xl rounded-md border-[0.5px] border-hairline bg-white p-6">
           <form onSubmit={handleManualSubmit} className="flex gap-2">
             <input
               type="text"
               value={manualId}
               onChange={(e) => setManualId(e.target.value)}
               placeholder="Garment ID (e.g. a1b2c3...)"
-              className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="flex-1 rounded-md border border-hairline px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-carter-blue"
             />
             <button
               type="submit"
               disabled={loading}
-              className="rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 disabled:opacity-50"
+              className="rounded-full bg-carter-blue px-5 py-2 text-sm font-medium text-white disabled:opacity-50"
             >
               {loading ? 'Loading...' : 'Load Garment'}
             </button>
           </form>
 
           <div className="mt-5 flex items-center gap-3">
-            <div className="h-px flex-1 bg-gray-200" />
-            <span className="text-xs uppercase tracking-wide text-gray-400">or</span>
-            <div className="h-px flex-1 bg-gray-200" />
+            <div className="h-px flex-1 bg-hairline" />
+            <span className="text-xs uppercase tracking-wide text-text-muted">or</span>
+            <div className="h-px flex-1 bg-hairline" />
           </div>
 
           <div className="mt-5 text-center">
@@ -239,7 +240,7 @@ export default function TradeIn() {
                   setLoadError('')
                   setScanning(true)
                 }}
-                className="inline-flex items-center gap-2 rounded-md border border-purple-600 px-4 py-2 text-sm font-medium text-purple-700 hover:bg-purple-50"
+                className="inline-flex items-center gap-2 rounded-full border-[1.5px] border-carter-blue px-4 py-2 text-sm font-medium text-carter-blue"
               >
                 <ScanLine className="h-4 w-4" />
                 Scan QR Code
@@ -248,7 +249,7 @@ export default function TradeIn() {
               <button
                 type="button"
                 onClick={() => setScanning(false)}
-                className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                className="rounded-full border border-hairline px-4 py-2 text-sm font-medium text-deep-navy"
               >
                 Cancel Scan
               </button>
@@ -256,54 +257,56 @@ export default function TradeIn() {
           </div>
 
           {scanning && (
-            <div id={QR_REGION_ID} className="mx-auto mt-4 max-w-sm overflow-hidden rounded-md" />
+            <div
+              id={QR_REGION_ID}
+              className="mx-auto mt-4 max-w-sm overflow-hidden rounded-md border-2 border-dashed border-blue-mid"
+            />
           )}
 
           {loadError && (
-            <div className="mt-5 flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+            <div className="mt-5 flex items-center gap-2 rounded-md bg-danger-bg px-3 py-2 text-sm text-danger">
               <AlertCircle className="h-4 w-4 flex-shrink-0" />
               {loadError}
             </div>
           )}
         </div>
       ) : (
-        <>
-          {/* Garment summary */}
-          <div className="mt-8 flex items-start justify-between gap-4 rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-200">
-            <div>
-              <p className="font-semibold text-gray-900">{garment.product_name}</p>
-              <p className="text-sm text-gray-500">
-                Size {garment.size} &middot; SKU {garment.sku}
-              </p>
-              <div className="mt-2 flex items-center gap-2">
-                <span
-                  className={`rounded-full px-2 py-0.5 text-xs font-semibold capitalize ${
-                    STATUS_BADGE[garment.current_status] || 'bg-gray-100 text-gray-600'
-                  }`}
-                >
-                  {garment.current_status}
-                </span>
-                <span className="text-xs text-gray-500">
-                  Current score: {garment.current_condition_score}
-                </span>
+        <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {/* Left column: garment info + photo upload */}
+          <div className="space-y-6">
+            <div className="flex items-start justify-between gap-4 rounded-md border-[0.5px] border-hairline bg-white p-5">
+              <div>
+                <p className="font-medium text-deep-navy">{garment.product_name}</p>
+                <p className="text-sm text-text-muted">
+                  Size {garment.size} &middot; SKU {garment.sku}
+                </p>
+                <div className="mt-2 flex items-center gap-2">
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[11px] font-semibold capitalize text-white ${
+                      STATUS_BADGE[garment.current_status] || 'bg-text-muted'
+                    }`}
+                  >
+                    {garment.current_status}
+                  </span>
+                  <span className="font-mono text-xs text-text-muted">
+                    score {garment.current_condition_score}
+                  </span>
+                </div>
               </div>
+              <button
+                type="button"
+                onClick={handleReset}
+                className="inline-flex items-center gap-1 text-sm font-medium text-text-muted"
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+                Start over
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={handleReset}
-              className="inline-flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-700"
-            >
-              <RefreshCw className="h-3.5 w-3.5" />
-              Start over
-            </button>
-          </div>
 
-          {!decisionResult && (
-            <>
-              {/* Photo upload + assessment */}
-              <div className="mt-6 rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-200">
-                <p className="text-sm font-semibold text-gray-900">Garment Photo</p>
-                <label className="mt-3 flex cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed border-gray-300 px-4 py-8 text-center hover:border-purple-400">
+            {!decisionResult && (
+              <div className="rounded-md border-[0.5px] border-hairline bg-white p-5">
+                <p className="text-sm font-semibold text-deep-navy">Garment Photo</p>
+                <label className="mt-3 flex cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed border-blue-mid bg-cream px-4 py-8 text-center">
                   {imagePreview ? (
                     <img
                       src={imagePreview}
@@ -312,8 +315,8 @@ export default function TradeIn() {
                     />
                   ) : (
                     <>
-                      <Upload className="h-6 w-6 text-gray-400" />
-                      <span className="mt-2 text-sm text-gray-500">Click to upload a photo</span>
+                      <Upload className="h-7 w-7 text-carter-blue" />
+                      <span className="mt-2 text-[11px] text-text-muted">Click to upload a photo</span>
                     </>
                   )}
                   <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
@@ -323,151 +326,170 @@ export default function TradeIn() {
                   type="button"
                   onClick={handleRunAssessment}
                   disabled={!imageBase64 || assessing}
-                  className="mt-4 w-full rounded-md bg-purple-600 px-3 py-2 text-sm font-medium text-white hover:bg-purple-700 disabled:opacity-50"
+                  className="mt-4 w-full rounded-full bg-carter-blue px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
                 >
                   {assessing ? 'Assessing...' : 'Run Assessment'}
                 </button>
 
                 {assessError && (
-                  <div className="mt-3 flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+                  <div className="mt-3 flex items-center gap-2 rounded-md bg-danger-bg px-3 py-2 text-sm text-danger">
                     <AlertCircle className="h-4 w-4 flex-shrink-0" />
                     {assessError}
                   </div>
                 )}
               </div>
+            )}
+          </div>
 
-              {/* Assessment results */}
-              {assessment && (
-                <div className="mt-6 rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-200">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold text-gray-900">AI Assessment</p>
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${gradeBadge}`}>
-                      {assessment.grade}
-                    </span>
-                  </div>
-                  <p className="mt-2 text-3xl font-bold text-gray-900">
-                    {assessment.condition_score}
-                    <span className="text-sm font-normal text-gray-400"> / 100</span>
-                  </p>
-
-                  {assessment.defects.length > 0 ? (
-                    <ul className="mt-2 list-inside list-disc text-sm text-gray-600">
-                      {assessment.defects.map((d) => (
-                        <li key={d}>{d}</li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="mt-2 text-sm text-gray-500">No defects detected.</p>
-                  )}
-
-                  <p className="mt-2 text-sm text-gray-600">
-                    Recommended resale price: ${assessment.recommended_price?.toFixed(2)}
-                  </p>
-
-                  {!assessment.eligible_for_trade_in && (
-                    <div className="mt-3 flex items-center gap-2 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-700">
-                      <AlertCircle className="h-4 w-4 flex-shrink-0" />
-                      AI recommends against trade-in, but the final call is yours.
-                    </div>
-                  )}
-
-                  <div className="mt-4 flex gap-3">
-                    <button
-                      type="button"
-                      onClick={() => handleDecision('approve')}
-                      disabled={deciding !== null}
-                      className="flex flex-1 items-center justify-center gap-2 rounded-md bg-green-600 px-3 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
-                    >
-                      <CheckCircle2 className="h-4 w-4" />
-                      {deciding === 'approve' ? 'Approving...' : 'Approve'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDecision('reject')}
-                      disabled={deciding !== null}
-                      className="flex flex-1 items-center justify-center gap-2 rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
-                    >
-                      <XCircle className="h-4 w-4" />
-                      {deciding === 'reject' ? 'Rejecting...' : 'Reject'}
-                    </button>
-                  </div>
-
-                  <textarea
-                    value={rejectReason}
-                    onChange={(e) => setRejectReason(e.target.value)}
-                    placeholder="Optional rejection reason..."
-                    rows={2}
-                    className="mt-3 w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+          {/* Right column: AI assessment result + decision */}
+          <div className="space-y-6">
+            {!decisionResult && assessment && (
+              <div className="rounded-md border-[0.5px] border-hairline bg-white p-5">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-deep-navy">AI Assessment</p>
+                  <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold text-white ${gradeBadge}`}>
+                    {assessment.grade}
+                  </span>
+                </div>
+                <p className="mt-2 font-mono text-3xl font-medium text-deep-navy">
+                  {assessment.condition_score}
+                  <span className="text-sm font-normal text-text-muted"> / 100</span>
+                </p>
+                <div className="mt-2 h-1.5 w-full rounded-full bg-sky-tint">
+                  <div
+                    className="h-1.5 rounded-full bg-loop-green"
+                    style={{ width: `${assessment.condition_score}%` }}
                   />
-
-                  {decisionError && (
-                    <div className="mt-3 flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
-                      <AlertCircle className="h-4 w-4 flex-shrink-0" />
-                      {decisionError}
-                    </div>
-                  )}
                 </div>
-              )}
-            </>
-          )}
 
-          {/* Decision confirmation */}
-          {decisionResult && decisionResult.decision === 'approve' && (
-            <div className="mt-6 rounded-xl bg-green-50 p-6 ring-1 ring-green-200">
-              <div className="flex items-center gap-2 text-green-800">
-                <CheckCircle2 className="h-6 w-6" />
-                <p className="text-lg font-semibold">Trade-in approved!</p>
-              </div>
-              {latestReward && (
-                <div className="mt-3 flex items-center gap-2 text-green-700">
-                  <Gift className="h-5 w-5" />
-                  <p className="font-medium">
-                    Reward issued: ${latestReward.value.toFixed(2)}{' '}
-                    {latestReward.reward_type.replace('_', ' ')}
-                  </p>
+                {assessment.defects.length > 0 ? (
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {assessment.defects.map((d) => (
+                      <span
+                        key={d}
+                        className="rounded-full border border-[#F0C97E] bg-warning-bg px-2.5 py-0.5 text-[10px] text-warning-text"
+                      >
+                        {d}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-2 text-sm text-text-muted">No defects detected.</p>
+                )}
+
+                <p className="mt-3 font-mono text-sm text-text-muted">
+                  Recommended resale price: ${assessment.recommended_price?.toFixed(2)}
+                </p>
+
+                {!assessment.eligible_for_trade_in && (
+                  <div className="mt-3 flex items-center gap-2 rounded-md bg-warning-bg px-3 py-2 text-sm text-warning-text">
+                    <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                    AI recommends against trade-in, but the final call is yours.
+                  </div>
+                )}
+
+                <div className="mt-4 flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => handleDecision('approve')}
+                    disabled={deciding !== null}
+                    className="flex flex-1 items-center justify-center gap-2 rounded-[10px] bg-loop-green px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+                  >
+                    <CheckCircle2 className="h-4 w-4" />
+                    {deciding === 'approve' ? 'Approving...' : 'Approve'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDecision('reject')}
+                    disabled={deciding !== null}
+                    className="flex flex-1 items-center justify-center gap-2 rounded-[10px] border-[1.5px] border-danger-bg bg-white px-3 py-2 text-sm font-medium text-danger disabled:opacity-50"
+                  >
+                    <XCircle className="h-4 w-4" />
+                    {deciding === 'reject' ? 'Rejecting...' : 'Reject'}
+                  </button>
                 </div>
-              )}
-              <ImpactReceipt
-                className="mt-4"
-                familiesServed={familiesServed}
-                waterSavedLiters={decisionResult.garment.sustainability.water_saved_liters}
-                co2AvoidedKg={decisionResult.garment.sustainability.co2_avoided_kg}
-                wasteDivertedCount={decisionResult.garment.sustainability.cycles_completed}
-              />
-              <p className="mt-4 text-sm text-green-700">
-                The garment is now listed on the Marketplace at $
-                {decisionResult.garment.price?.toFixed(2)}.
-              </p>
-              <button
-                type="button"
-                onClick={handleReset}
-                className="mt-5 rounded-md border border-green-300 px-4 py-2 text-sm font-medium text-green-800 hover:bg-green-100"
-              >
-                Start next trade-in
-              </button>
-            </div>
-          )}
 
-          {decisionResult && decisionResult.decision === 'reject' && (
-            <div className="mt-6 rounded-xl bg-red-50 p-6 ring-1 ring-red-200">
-              <div className="flex items-center gap-2 text-red-800">
-                <XCircle className="h-6 w-6" />
-                <p className="text-lg font-semibold">Trade-in rejected</p>
+                <textarea
+                  value={rejectReason}
+                  onChange={(e) => setRejectReason(e.target.value)}
+                  placeholder="Optional rejection reason..."
+                  rows={2}
+                  className="mt-3 w-full rounded-md border border-hairline px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-carter-blue"
+                />
+
+                {decisionError && (
+                  <div className="mt-3 flex items-center gap-2 rounded-md bg-danger-bg px-3 py-2 text-sm text-danger">
+                    <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                    {decisionError}
+                  </div>
+                )}
               </div>
-              <p className="mt-2 text-sm text-red-700">{rejectionNote}</p>
-              <p className="mt-3 text-sm text-red-700">
-                The garment has been returned to the family. No reward issued.
-              </p>
-              <button
-                type="button"
-                onClick={handleReset}
-                className="mt-5 rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-800 hover:bg-red-100"
-              >
-                Start next trade-in
-              </button>
-            </div>
-          )}
-        </>
+            )}
+
+            {!decisionResult && !assessment && (
+              <div className="flex h-full items-center justify-center rounded-md border-[0.5px] border-hairline bg-white p-5 text-center text-sm text-text-muted">
+                Upload a photo and run the assessment to see results here.
+              </div>
+            )}
+
+            {/* Decision confirmation */}
+            {decisionResult && decisionResult.decision === 'approve' && (
+              <div className="rounded-md bg-mint-tint p-6">
+                <div className="flex items-center gap-2 text-green-dark">
+                  <CheckCircle2 className="h-6 w-6" />
+                  <p className="text-lg font-semibold">Trade-in approved!</p>
+                </div>
+                {latestReward && (
+                  <div className="mt-3 flex items-center gap-2 text-green-dark">
+                    <Gift className="h-5 w-5" />
+                    <p className="font-medium">
+                      Reward issued: ${latestReward.value.toFixed(2)}{' '}
+                      {latestReward.reward_type.replace('_', ' ')}
+                    </p>
+                  </div>
+                )}
+                <ImpactReceipt
+                  className="mt-4"
+                  familiesServed={familiesServed}
+                  waterSavedLiters={decisionResult.garment.sustainability.water_saved_liters}
+                  co2AvoidedKg={decisionResult.garment.sustainability.co2_avoided_kg}
+                  wasteDivertedCount={decisionResult.garment.sustainability.cycles_completed}
+                />
+                <p className="mt-4 text-sm text-green-dark">
+                  The garment is now listed on the Marketplace at $
+                  {decisionResult.garment.price?.toFixed(2)}.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="mt-5 rounded-full border border-loop-green px-4 py-2 text-sm font-medium text-green-dark"
+                >
+                  Start next trade-in
+                </button>
+              </div>
+            )}
+
+            {decisionResult && decisionResult.decision === 'reject' && (
+              <div className="rounded-md bg-danger-bg p-6">
+                <div className="flex items-center gap-2 text-danger">
+                  <XCircle className="h-6 w-6" />
+                  <p className="text-lg font-semibold">Trade-in rejected</p>
+                </div>
+                <p className="mt-2 text-sm text-danger">{rejectionNote}</p>
+                <p className="mt-3 text-sm text-danger">
+                  The garment has been returned to the family. No reward issued.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="mt-5 rounded-full border border-danger px-4 py-2 text-sm font-medium text-danger"
+                >
+                  Start next trade-in
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   )
