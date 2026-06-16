@@ -1,41 +1,44 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import {
-  Factory,
-  ShoppingBag,
-  PackageOpen,
-  ClipboardCheck,
-  Sparkles,
-  Tag,
-  QrCode,
-  AlertCircle,
-} from 'lucide-react'
+import { QrCode, AlertCircle } from 'lucide-react'
 import { getGarment } from '../api'
 import ImpactReceipt from '../components/ImpactReceipt'
 
-// Icon + label per PassportCycle.event_type (see backend/models.py).
-const EVENT_META = {
-  manufactured: { icon: Factory, label: 'Manufactured', color: 'text-gray-500 bg-gray-100' },
-  purchased: { icon: ShoppingBag, label: 'Purchased', color: 'text-blue-600 bg-blue-100' },
-  returned: { icon: PackageOpen, label: 'Returned', color: 'text-amber-600 bg-amber-100' },
-  inspected: { icon: ClipboardCheck, label: 'AI Inspected', color: 'text-purple-600 bg-purple-100' },
-  sanitized: { icon: Sparkles, label: 'Sanitized', color: 'text-teal-600 bg-teal-100' },
-  resold: { icon: Tag, label: 'Resold', color: 'text-green-600 bg-green-100' },
+// Event label per PassportCycle.event_type (see backend/models.py). The
+// stitched-seam timeline (Design.md) carries event info in cream cards with
+// no per-type icon -- just label, date/score, notes, and reward.
+const EVENT_LABEL = {
+  manufactured: 'Manufactured',
+  purchased: 'Purchased',
+  returned: 'Returned',
+  inspected: 'AI Inspected',
+  sanitized: 'Sanitized',
 }
 
-// Badge color per Garment.current_status (see backend/models.py).
+// Badge color per Garment.current_status (see backend/models.py) -- a
+// lifecycle-status pill, distinct from the condition-grade pill in the hero.
 const STATUS_BADGE = {
-  active: 'bg-blue-100 text-blue-700',
-  returned: 'bg-amber-100 text-amber-700',
-  sanitizing: 'bg-purple-100 text-purple-700',
-  resale: 'bg-green-100 text-green-700',
-  retired: 'bg-gray-200 text-gray-600',
+  active: 'bg-carter-blue',
+  returned: 'bg-warning',
+  sanitizing: 'bg-blue-dark',
+  resale: 'bg-loop-green',
+  retired: 'bg-text-muted',
 }
 
-function conditionColor(score) {
-  if (score >= 85) return 'text-green-600'
-  if (score >= 60) return 'text-amber-600'
-  return 'text-red-600'
+// Mirrors assessment.py's GRADE_BANDS thresholds (90/75/60/40/0) so the
+// hero's grade badge always agrees with what the Trade-In screen would have
+// shown for this same score. Grade badge colors per Design.md's table;
+// Poor isn't in that table so it shares Rejected's color (both are "bad").
+const GRADE_BANDS = [
+  { min: 90, label: 'Excellent', color: 'bg-loop-green' },
+  { min: 75, label: 'Good', color: 'bg-green-dark' },
+  { min: 60, label: 'Fair', color: 'bg-warning' },
+  { min: 40, label: 'Poor', color: 'bg-danger' },
+  { min: 0, label: 'Rejected', color: 'bg-danger' },
+]
+
+function gradeForScore(score) {
+  return GRADE_BANDS.find((b) => score >= b.min) || GRADE_BANDS[GRADE_BANDS.length - 1]
 }
 
 function formatDate(iso) {
@@ -73,7 +76,7 @@ export default function Passport() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-16 text-center text-gray-500">
+      <div className="mx-auto max-w-3xl px-4 py-16 text-center text-text-muted">
         Loading passport...
       </div>
     )
@@ -82,12 +85,12 @@ export default function Passport() {
   if (error || !garment) {
     return (
       <div className="mx-auto max-w-md px-4 py-16 text-center">
-        <AlertCircle className="mx-auto h-10 w-10 text-red-500" />
-        <h1 className="mt-3 text-xl font-semibold text-gray-900">Passport not found</h1>
-        <p className="mt-2 text-gray-600">{error}</p>
+        <AlertCircle className="mx-auto h-10 w-10 text-danger" />
+        <h1 className="mt-3 text-xl font-semibold text-deep-navy">Passport not found</h1>
+        <p className="mt-2 text-text-muted">{error}</p>
         <Link
           to="/scan"
-          className="mt-4 inline-block rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700"
+          className="mt-4 inline-block rounded-full bg-carter-blue px-5 py-2 text-sm font-medium text-white"
         >
           Try another scan
         </Link>
@@ -98,111 +101,106 @@ export default function Passport() {
   // "Families served" -- each purchase event represents a new family taking
   // ownership of the garment.
   const familiesServed = garment.cycles.filter((c) => c.event_type === 'purchased').length
-  const statusBadge = STATUS_BADGE[garment.current_status] || 'bg-gray-100 text-gray-600'
+  const statusBadge = STATUS_BADGE[garment.current_status] || 'bg-text-muted'
+  const grade = gradeForScore(garment.current_condition_score ?? 0)
   const sustainability = garment.sustainability
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
       {/* Hero */}
-      <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-200">
-        <div className="bg-gradient-to-r from-purple-600 to-purple-500 px-6 py-8 text-white">
+      <div className="overflow-hidden rounded-xl border-[0.5px] border-hairline bg-white">
+        <div className="hero-crosshatch px-6 py-8 text-white">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-sm font-medium uppercase tracking-wide text-purple-100">
-                Digital Garment Passport
-              </p>
-              <h1 className="mt-1 text-3xl font-bold">{garment.product_name}</h1>
-              <p className="mt-1 text-purple-100">
-                Size {garment.size} &middot; SKU {garment.sku}
+              <p className="eyebrow text-carter-blue">Digital Garment Passport</p>
+              <h1 className="mt-1 text-3xl font-semibold">{garment.product_name}</h1>
+              <p className="mt-1 text-white/70">
+                Size {garment.size} &middot; SKU {garment.sku} &middot; Manufactured{' '}
+                {formatDate(garment.manufactured_at)}
               </p>
             </div>
             <span
-              className={`whitespace-nowrap rounded-full px-3 py-1 text-sm font-semibold capitalize ${statusBadge}`}
+              className={`whitespace-nowrap rounded-full px-3 py-1 text-[11px] font-semibold capitalize text-white ${statusBadge}`}
             >
               {garment.current_status}
             </span>
           </div>
-        </div>
 
-        <div className="grid grid-cols-2 gap-4 border-b border-gray-100 px-6 py-6 sm:grid-cols-3">
-          <div>
-            <p className="text-xs uppercase tracking-wide text-gray-400">Condition Score</p>
-            <p className={`mt-1 text-3xl font-bold ${conditionColor(garment.current_condition_score)}`}>
+          <div className="mt-6 flex items-center gap-3">
+            <span className="rounded-full border border-white/15 bg-white/10 px-4 py-1.5 font-mono text-2xl font-medium text-white">
               {garment.current_condition_score}
-            </p>
+            </span>
+            <span className={`rounded-full px-3 py-1 text-[11px] font-semibold text-white ${grade.color}`}>
+              {grade.label}
+            </span>
           </div>
-          <div>
-            <p className="text-xs uppercase tracking-wide text-gray-400">Manufactured</p>
-            <p className="mt-1 text-lg font-semibold text-gray-900">
-              {formatDate(garment.manufactured_at)}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-wide text-gray-400">Cycles Completed</p>
-            <p className="mt-1 text-lg font-semibold text-gray-900">
-              {sustainability.cycles_completed}
-            </p>
-          </div>
-        </div>
-
-        {/* Impact metrics */}
-        <div className="px-6 py-6">
-          <ImpactReceipt
-            familiesServed={familiesServed}
-            waterSavedLiters={sustainability.water_saved_liters}
-            co2AvoidedKg={sustainability.co2_avoided_kg}
-            wasteDivertedCount={sustainability.cycles_completed}
-          />
         </div>
       </div>
 
       <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-[1fr_auto]">
-        {/* Lifecycle timeline */}
+        {/* Lifecycle timeline -- stitched seam, not a generic dot-connector. */}
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">Lifecycle Timeline</h2>
-          <ol className="mt-4 space-y-6 border-l border-gray-200 pl-6">
-            {garment.cycles.map((cycle) => {
-              const meta = EVENT_META[cycle.event_type] || {
-                icon: Tag,
-                label: cycle.event_type,
-                color: 'text-gray-500 bg-gray-100',
-              }
-              const Icon = meta.icon
-              return (
-                <li key={cycle.id} className="relative">
-                  <span
-                    className={`absolute -left-[34px] flex h-7 w-7 items-center justify-center rounded-full ${meta.color}`}
-                  >
-                    <Icon className="h-4 w-4" />
-                  </span>
-                  <p className="text-sm font-semibold text-gray-900">{meta.label}</p>
-                  <p className="text-xs text-gray-400">{formatDate(cycle.timestamp)}</p>
-                  {cycle.condition_score_at_event != null && (
-                    <p className="mt-1 text-xs text-gray-600">
-                      Condition score: {cycle.condition_score_at_event}
-                    </p>
-                  )}
-                  {cycle.notes && <p className="mt-1 text-xs text-gray-600">{cycle.notes}</p>}
-                  {cycle.rewards.length > 0 && (
-                    <p className="mt-1 text-xs font-medium text-purple-600">
-                      Reward: {cycle.rewards.map((r) => `${r.reward_type} ($${r.value})`).join(', ')}
-                    </p>
-                  )}
-                </li>
-              )
-            })}
+          <p className="eyebrow text-carter-blue">Lifecycle Timeline</p>
+          <ol className="relative mt-4 pl-6">
+            <span className="timeline-thread absolute bottom-0 left-[7px] top-0 w-[2px]" />
+            <div className="space-y-4">
+              {garment.cycles.map((cycle) => {
+                const label = EVENT_LABEL[cycle.event_type] || cycle.event_type
+                const isGreen = cycle.event_type === 'sanitized'
+                return (
+                  <div key={cycle.id} className="relative">
+                    <span
+                      className={`absolute -left-[22px] top-1 h-2.5 w-2.5 rounded-full border-2 ${
+                        isGreen ? 'border-loop-green bg-loop-green' : 'border-carter-blue bg-carter-blue'
+                      }`}
+                    />
+                    <div className="rounded-[10px] border-[0.5px] border-hairline bg-cream px-3 py-2">
+                      <p className="text-[11px] font-medium text-deep-navy">{label}</p>
+                      <p className="font-mono text-[10px] text-text-muted">
+                        {formatDate(cycle.timestamp)}
+                        {cycle.condition_score_at_event != null &&
+                          ` · score ${cycle.condition_score_at_event}`}
+                      </p>
+                      {cycle.notes && (
+                        <p className="mt-1 text-[11px] text-text-muted">{cycle.notes}</p>
+                      )}
+                      {cycle.rewards.length > 0 && (
+                        <p className="mt-1 text-[11px] font-medium text-carter-blue">
+                          Reward:{' '}
+                          {cycle.rewards.map((r) => `${r.reward_type} ($${r.value})`).join(', ')}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
           </ol>
+
+          {/* Impact metrics -- below the timeline per Design.md */}
+          <div className="mt-8">
+            <ImpactReceipt
+              title="Impact so far"
+              familiesServed={familiesServed}
+              waterSavedLiters={sustainability.water_saved_liters}
+              co2AvoidedKg={sustainability.co2_avoided_kg}
+              wasteDivertedCount={sustainability.cycles_completed}
+            />
+          </div>
         </div>
 
-        {/* QR code */}
-        <div className="flex flex-col items-center self-start rounded-xl bg-white p-4 text-center shadow-sm ring-1 ring-gray-200">
-          <QrCode className="h-4 w-4 text-gray-400" />
+        {/* QR code -- below impact chips per Design.md (stacks below the
+            timeline column on narrow screens, sits beside it on wide ones). */}
+        <div className="flex flex-col items-center self-start rounded-xl border-[0.5px] border-hairline bg-white p-4 text-center">
+          <QrCode className="h-4 w-4 text-carter-blue" />
           <img
             src={`/static/qr/${garment.id}.png`}
             alt="Garment passport QR code"
             className="mt-2 h-32 w-32"
           />
-          <p className="mt-2 max-w-[8rem] break-all text-[10px] text-gray-400">{garment.id}</p>
+          <p className="mt-2 max-w-[8rem] break-all font-mono text-[10px] text-text-muted">
+            {garment.id}
+          </p>
         </div>
       </div>
     </div>
