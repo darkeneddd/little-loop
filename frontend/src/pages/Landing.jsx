@@ -34,16 +34,12 @@ const VALUE_PROPS = [
   },
 ]
 
-function Stat({ icon: Icon, value, label, color }) {
+function Stat({ icon: Icon, value, label }) {
   return (
-    <div className="text-center">
-      <span
-        className={`inline-flex h-10 w-10 items-center justify-center rounded-full ${color}`}
-      >
-        <Icon className="h-5 w-5" />
-      </span>
-      <p className="mt-3 text-2xl font-bold text-gray-900">{value}</p>
-      <p className="text-xs text-gray-500">{label}</p>
+    <div className="rounded-md border-[0.5px] border-hairline bg-white p-4 text-center">
+      <Icon className="mx-auto h-5 w-5 text-carter-blue" />
+      <p className="mt-2 font-mono text-xl font-medium text-deep-navy">{value}</p>
+      <p className="mt-0.5 text-[9px] uppercase tracking-[0.08em] text-text-muted">{label}</p>
     </div>
   )
 }
@@ -69,11 +65,12 @@ export default function Landing() {
   return (
     <div>
       {/* Hero */}
-      <div className="bg-gradient-to-r from-purple-600 to-purple-500 text-white">
+      <div className="bg-deep-navy text-white">
         <div className="mx-auto max-w-5xl px-4 py-20 text-center">
-          <Recycle className="mx-auto h-12 w-12 text-purple-200" />
-          <h1 className="mt-4 text-4xl font-bold sm:text-5xl">Carter's LittleLoop</h1>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-purple-100">
+          <Recycle className="mx-auto h-10 w-10 text-carter-blue" />
+          <p className="eyebrow mt-4 text-carter-blue">Carter's circularity program</p>
+          <h1 className="mt-2 text-4xl font-semibold sm:text-5xl">LittleLoop</h1>
+          <p className="mx-auto mt-4 max-w-2xl text-lg text-white/70">
             A circular program for baby clothes. Every garment carries a Digital Garment
             Passport that tracks it from first wear through trade-in, AI inspection, and
             resale, so great clothes keep finding new families instead of the landfill.
@@ -81,14 +78,14 @@ export default function Landing() {
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <Link
               to="/marketplace"
-              className="inline-flex items-center gap-2 rounded-md bg-white px-5 py-2.5 text-sm font-semibold text-purple-700 hover:bg-purple-50"
+              className="inline-flex items-center gap-2 rounded-full bg-carter-blue px-5 py-2.5 text-sm font-medium text-white"
             >
               <ShoppingBag className="h-4 w-4" />
               Shop LittleLoop
             </Link>
             <Link
               to="/scan"
-              className="inline-flex items-center gap-2 rounded-md border border-white/60 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10"
+              className="inline-flex items-center gap-2 rounded-full border border-white/30 px-5 py-2.5 text-sm font-medium text-white"
             >
               <ScanLine className="h-4 w-4" />
               Scan a Passport
@@ -104,11 +101,11 @@ export default function Landing() {
             const Icon = v.icon
             return (
               <div key={v.title} className="text-center">
-                <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 text-purple-600">
+                <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-sky-tint text-carter-blue">
                   <Icon className="h-6 w-6" />
                 </span>
-                <h3 className="mt-4 font-semibold text-gray-900">{v.title}</h3>
-                <p className="mt-2 text-sm text-gray-600">{v.body}</p>
+                <h3 className="mt-4 font-medium text-deep-navy">{v.title}</h3>
+                <p className="mt-2 text-sm text-text-muted">{v.body}</p>
               </div>
             )
           })}
@@ -116,39 +113,23 @@ export default function Landing() {
       </div>
 
       {/* Live stats, from GET /dashboard */}
-      <div className="border-t border-gray-200 bg-white">
+      <div className="border-t-[0.5px] border-hairline bg-white">
         <div className="mx-auto max-w-5xl px-4 py-14">
-          <h2 className="text-center text-lg font-semibold text-gray-900">Our impact so far</h2>
+          <p className="eyebrow text-center text-carter-blue">Our impact so far</p>
           {error ? (
-            <p className="mt-6 text-center text-gray-400">{error}</p>
+            <p className="mt-6 text-center text-text-muted">{error}</p>
           ) : !data ? (
-            <p className="mt-6 text-center text-gray-400">Loading live stats...</p>
+            <p className="mt-6 text-center text-text-muted">Loading live stats...</p>
           ) : (
-            <div className="mt-8 grid grid-cols-2 gap-6 sm:grid-cols-4">
-              <Stat
-                icon={PackageOpen}
-                value={data.total_garments}
-                label="Garments in program"
-                color="text-gray-700 bg-gray-100"
-              />
-              <Stat
-                icon={Users}
-                value={data.participants}
-                label="Families served"
-                color="text-blue-700 bg-blue-100"
-              />
+            <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+              <Stat icon={PackageOpen} value={data.total_garments} label="Garments in program" />
+              <Stat icon={Users} value={data.participants} label="Families served" />
               <Stat
                 icon={Droplets}
                 value={`${data.sustainability.water_saved_liters.toLocaleString()} L`}
                 label="Water saved"
-                color="text-cyan-700 bg-cyan-100"
               />
-              <Stat
-                icon={Cloud}
-                value={`${data.sustainability.co2_avoided_kg} kg`}
-                label="CO₂ avoided"
-                color="text-emerald-700 bg-emerald-100"
-              />
+              <Stat icon={Cloud} value={`${data.sustainability.co2_avoided_kg} kg`} label="CO₂ avoided" />
             </div>
           )}
         </div>
