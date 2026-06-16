@@ -1,8 +1,10 @@
 import datetime
+import os
 from typing import List, Optional
 
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -14,6 +16,11 @@ from serializers import compute_sustainability_totals, count_completed_cycles, s
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="LittleLoop API")
+
+# Serves the QR PNGs seed.py writes to static/qr/<garment_id>.png (T15) --
+# absolute path so this works regardless of the CWD uvicorn is launched from.
+STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 app.add_middleware(
     CORSMiddleware,
