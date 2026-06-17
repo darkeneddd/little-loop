@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom'
-import { Recycle } from 'lucide-react'
 import { ROLES, useRole } from '../context/RoleContext'
+import logo from '../assets/logo1.png'
 
 // Per CLAUDE.md's User Roles & Views table -- each role only sees the
 // screens relevant to it. Landing + Passport are useful regardless of role
@@ -32,9 +32,7 @@ export default function NavBar() {
     <div className="px-5 pt-5">
       <nav className="mx-auto flex max-w-6xl items-center justify-between rounded-xl border-[0.5px] border-hairline bg-white px-5 py-3.5">
         <NavLink to="/" className="flex items-center gap-2">
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-carter-blue">
-            <Recycle className="h-4 w-4 text-white" />
-          </span>
+          <img src={logo} alt="LittleLoop logo" className="h-9 w-9 rounded-lg object-cover" />
           <span className="text-sm font-semibold text-deep-navy">
             Little<span className="text-carter-blue">Loop</span>
           </span>

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  Recycle,
   ShoppingBag,
   ScanLine,
   Repeat,
@@ -13,6 +12,7 @@ import {
   PackageOpen,
 } from 'lucide-react'
 import { getDashboard } from '../api'
+import logo from '../assets/logo1.png'
 
 // Three-column value props (T17) -- mirrors the actual loop CLAUDE.md
 // describes: Purchase -> Wear -> Trade-In -> AI Inspect -> Sanitize -> Resale.
@@ -67,7 +67,7 @@ export default function Landing() {
       {/* Hero */}
       <div className="bg-deep-navy text-white">
         <div className="mx-auto max-w-5xl px-4 py-20 text-center">
-          <Recycle className="mx-auto h-10 w-10 text-carter-blue" />
+          <img src={logo} alt="LittleLoop logo" className="mx-auto h-30 w-30 rounded-lg object-cover" />
           <p className="eyebrow mt-4 text-carter-blue">Carter's circularity program</p>
           <h1 className="mt-2 text-4xl font-semibold sm:text-5xl">LittleLoop</h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-white/70">
