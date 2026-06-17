@@ -16,8 +16,8 @@ A hackathon project for Carter's. A circular baby clothing ecosystem where garme
 | Backend | Python + FastAPI |
 | Database | SQLite + SQLAlchemy |
 | AI Assessment | Claude API (vision) |
-| QR Generation | `qrcode` (Python) |
-| QR Scanning | `html5-qrcode` (JS) |
+| Barcode Generation | `qrcode` (Python) |
+| Barcode Scanning | `html5-qrcode` (JS) |
 | Charts | Recharts |
 | Icons | Lucide React |
 | Hosting | Local (hackathon) |
@@ -98,7 +98,7 @@ Sends garment image (base64) to Claude API. Prompt instructs Claude to return st
 
 ## Key Design Decisions
 
-**Garment ID mechanism:** QR codes on hang tags for the demo. Label durability (washing) is a known production problem — acknowledge in pitch, don't solve it now.
+**Garment ID mechanism:** Barcodes on hang tags for the demo. Label durability (washing) is a known production problem — acknowledge in pitch, don't solve it now.
 
 **Auth:** No auth system. Role switcher dropdown in nav (Parent / Employee / Corporate). Role stored in React context.
 
@@ -126,8 +126,8 @@ Sends garment image (base64) to Claude API. Prompt instructs Claude to return st
 ## Screens
 
 1. **Landing Page** — Program overview, stats from `/dashboard`, CTAs to Shop and Scan
-2. **Passport Scanner** — Manual ID input or QR scan → navigates to Passport
-3. **Digital Passport** — Hero stats, lifecycle timeline, impact metrics, QR code display
+2. **Passport Scanner** — Manual ID input or barcode scan → navigates to Passport
+3. **Digital Passport** — Hero stats, lifecycle timeline, impact metrics, barcode display
 4. **Marketplace** — Resale grid, filters, links to Passport, "Purchase" button
 5. **Employee Trade-In** — Scan garment, upload photo, run AI assessment, approve/reject
 6. **Corporate Dashboard** — KPI cards, sustainability totals, durability table, returns-by-size chart
@@ -139,7 +139,7 @@ Sends garment image (base64) to Claude API. Prompt instructs Claude to return st
 - Each with 2–4 passport cycle events
 - Mix of statuses: active, resale, returned
 - Mix of condition scores: excellent, fair, rejected
-- QR PNG generated per garment → `/backend/static/qr/<garment_id>.png`
+- Barcode PNG generated per garment → `/backend/static/barcode/<garment_id>.png`
 
 ---
 
@@ -149,7 +149,7 @@ The **Digital Passport** is the demo's "wow" moment. Prioritize its design.
 ## Cut If Time-Pressed
 - Landing page (T17) — nice but not core
 - Bar chart on dashboard (T14) — can show table only
-- Keep: QR display on passport (T15) and impact receipt component (T16)
+- Keep: barcode display on passport (T15) and impact receipt component (T16)
 
 ## 
 Work through the todo list in TODO.md, asking the user questions as needed.

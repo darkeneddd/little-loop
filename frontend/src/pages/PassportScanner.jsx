@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Html5Qrcode } from 'html5-qrcode'
-import { QrCode, ScanLine, AlertCircle } from 'lucide-react'
+import { Barcode, ScanBarcode, AlertCircle } from 'lucide-react'
 import { getGarment } from '../api'
 
-const QR_REGION_ID = 'qr-reader'
+const BARCODE_REGION_ID = 'barcode-reader'
 
 export default function PassportScanner() {
   const [manualId, setManualId] = useState('')
@@ -19,7 +19,7 @@ export default function PassportScanner() {
   useEffect(() => {
     if (!scanning) return
 
-    const scanner = new Html5Qrcode(QR_REGION_ID)
+    const scanner = new Html5Qrcode(BARCODE_REGION_ID)
     scannerRef.current = scanner
     let cancelled = false
 
@@ -33,8 +33,8 @@ export default function PassportScanner() {
           handleResolved(extractGarmentId(decodedText))
         },
         () => {
-          // Per-frame "no QR found" callback -- expected constantly while
-          // scanning, nothing to surface to the user.
+          // Per-frame "no barcode found" callback -- expected constantly
+          // while scanning, nothing to surface to the user.
         },
       )
       .catch((err) => {
@@ -52,7 +52,7 @@ export default function PassportScanner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scanning])
 
-  // QR payloads may be a bare garment ID or a full passport URL
+  // Barcode payloads may be a bare garment ID or a full passport URL
   // (e.g. https://.../passport/<id>) -- handle either.
   function extractGarmentId(text) {
     const trimmed = text.trim()
@@ -91,11 +91,11 @@ export default function PassportScanner() {
   return (
     <div className="mx-auto max-w-xl px-4 py-16">
       <div className="text-center">
-        <QrCode className="mx-auto h-10 w-10 text-carter-blue" />
+        <Barcode className="mx-auto h-10 w-10 text-carter-blue" />
         <h1 className="mt-3 text-2xl font-semibold text-deep-navy">Scan Passport</h1>
         <p className="mt-2 text-text-muted">
-          Scan a garment's QR tag or enter its ID to view its Digital Garment
-          Passport.
+          Scan a garment's barcode tag or enter its ID to view its Digital
+          Garment Passport.
         </p>
       </div>
 
@@ -132,8 +132,8 @@ export default function PassportScanner() {
             }}
             className="inline-flex items-center gap-2 rounded-full border-[1.5px] border-carter-blue px-4 py-2 text-sm font-medium text-carter-blue"
           >
-            <ScanLine className="h-4 w-4" />
-            Scan QR Code
+            <ScanBarcode className="h-4 w-4" />
+            Scan Barcode
           </button>
         ) : (
           <button
@@ -148,13 +148,13 @@ export default function PassportScanner() {
 
       {scanning ? (
         <div
-          id={QR_REGION_ID}
+          id={BARCODE_REGION_ID}
           className="mx-auto mt-4 max-w-sm overflow-hidden rounded-md border-2 border-dashed border-blue-mid"
         />
       ) : (
         <div className="mt-4 flex flex-col items-center gap-2 rounded-md border-2 border-dashed border-blue-mid bg-cream px-4 py-8">
-          <QrCode className="h-7 w-7 text-carter-blue" />
-          <p className="text-[11px] text-text-muted">QR scan preview appears here</p>
+          <Barcode className="h-7 w-7 text-carter-blue" />
+          <p className="text-[11px] text-text-muted">Barcode scan preview appears here</p>
         </div>
       )}
 

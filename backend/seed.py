@@ -1,5 +1,5 @@
 """Seed the database with 15 demo garments, their passport-cycle history,
-and rewards, plus a QR code PNG per garment.
+and rewards, plus a barcode PNG per garment.
 
 Run with the venv's python:
     backend/venv/Scripts/python.exe backend/seed.py
@@ -7,9 +7,10 @@ Run with the venv's python:
 Re-running this script wipes and re-creates all rows (idempotent for demo
 purposes) -- run it any time you want to reset the demo to a known-clean
 state (before a demo, after poking at the data while testing, etc). Garment
-ids are random UUIDs regenerated every run, so every previously written QR
-PNG is stale the moment a reseed happens; main() clears static/qr/ first so
-it never accumulates orphaned PNGs pointing at ids that no longer exist.
+ids are random UUIDs regenerated every run, so every previously written
+barcode PNG is stale the moment a reseed happens; main() clears
+static/barcode/ first so it never accumulates orphaned PNGs pointing at ids
+that no longer exist.
 """
 
 import datetime
@@ -22,7 +23,7 @@ import models
 from constants import CO2_AVOIDED_PER_CYCLE_KG, WATER_SAVED_PER_CYCLE_LITERS
 from database import Base, SessionLocal, engine
 
-QR_DIR = os.path.join(os.path.dirname(__file__), "static", "qr")
+BARCODE_DIR = os.path.join(os.path.dirname(__file__), "static", "barcode")
 
 # Stable, verified Unsplash CDN photo URLs (no API key needed for hotlinking).
 THUMB_PARAMS = "?w=600&q=80&fit=crop&auto=format"
@@ -182,10 +183,10 @@ def main():
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
 
-    # Fresh QR directory too -- old PNGs are keyed by ids this run just
+    # Fresh barcode directory too -- old PNGs are keyed by ids this run just
     # dropped, so leaving them in place would only accumulate orphans.
-    shutil.rmtree(QR_DIR, ignore_errors=True)
-    os.makedirs(QR_DIR, exist_ok=True)
+    shutil.rmtree(BARCODE_DIR, ignore_errors=True)
+    os.makedirs(BARCODE_DIR, exist_ok=True)
 
     db = SessionLocal()
     try:
@@ -200,10 +201,10 @@ def main():
                 reward.cycle_id = garment.cycles[cycle_index].id
                 db.add(reward)
 
-            # QR code encodes the garment id -- the Passport Scanner screen
+            # Barcode encodes the garment id -- the Passport Scanner screen
             # looks this up directly via GET /garments/:id.
             img = qrcode.make(garment.id)
-            img.save(os.path.join(QR_DIR, f"{garment.id}.png"))
+            img.save(os.path.join(BARCODE_DIR, f"{garment.id}.png"))
 
         db.commit()
         count = db.query(models.Garment).count()
@@ -211,7 +212,7 @@ def main():
         reward_count = db.query(models.Reward).count()
         print(
             f"Seeded {count} garments, {cycle_count} passport cycles, "
-            f"{reward_count} rewards. QR codes written to {QR_DIR}"
+            f"{reward_count} rewards. Barcodes written to {BARCODE_DIR}"
         )
         print(
             f"Sustainability proxies: {WATER_SAVED_PER_CYCLE_LITERS}L water / "

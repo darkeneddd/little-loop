@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { QrCode, AlertCircle } from 'lucide-react'
+import { Barcode, AlertCircle } from 'lucide-react'
 import { getGarment } from '../api'
 import ImpactReceipt from '../components/ImpactReceipt'
 
@@ -189,13 +189,13 @@ export default function Passport() {
           </div>
         </div>
 
-        {/* QR code -- below impact chips per Design.md (stacks below the
+        {/* Barcode -- below impact chips per Design.md (stacks below the
             timeline column on narrow screens, sits beside it on wide ones). */}
         <div className="flex flex-col items-center self-start rounded-xl border-[0.5px] border-hairline bg-white p-4 text-center">
-          <QrCode className="h-4 w-4 text-carter-blue" />
+          <Barcode className="h-4 w-4 text-carter-blue" />
           <img
-            src={`/static/qr/${garment.id}.png`}
-            alt="Garment passport QR code"
+            src={`/static/barcode/${garment.id}.png`}
+            alt="Garment passport barcode"
             className="mt-2 h-32 w-32"
           />
           <p className="mt-2 max-w-[8rem] break-all font-mono text-[10px] text-text-muted">

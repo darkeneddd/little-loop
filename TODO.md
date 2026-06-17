@@ -24,7 +24,7 @@ Build in order. Don't start a task until the one above it is done.
   - [ ] Mix of statuses: active, resale, returned
   - [ ] Mix of condition scores: excellent, fair, rejected
   - [ ] Sustainability constants: 2700L water, 2kg CO₂ per cycle
-  - [ ] Generate QR PNG per garment → `/backend/static/qr/<id>.png`
+  - [ ] Generate barcode PNG per garment → `/backend/static/barcode/<id>.png`
   - [ ] Confirm query returns garment + cycles
 
 ---
@@ -72,7 +72,7 @@ Build in order. Don't start a task until the one above it is done.
 
 - [ ] **T10 — Passport Scanner screen**
   - [ ] Manual garment ID text input
-  - [ ] QR scanner (html5-qrcode)
+  - [ ] Barcode scanner (html5-qrcode)
   - [ ] Calls GET /garments/:id
   - [ ] Navigates to Passport on success, error on failure
 
@@ -80,7 +80,7 @@ Build in order. Don't start a task until the one above it is done.
   - [ ] Product name, size, condition score, status badge
   - [ ] Lifecycle timeline (vertical, icons, timestamps)
   - [ ] Impact metrics: families served, water saved, CO₂ avoided
-  - [ ] QR code image displayed
+  - [ ] Barcode image displayed
 
 - [ ] **T12 — Marketplace screen**
   - [ ] Grid of resale garment cards
@@ -108,8 +108,8 @@ Build in order. Don't start a task until the one above it is done.
 
 ## PHASE 4 — Polish
 
-- [ ] **T15 — QR codes on Passport screen**
-  - [ ] Serve PNGs from `/backend/static/qr/:id.png`
+- [ ] **T15 — Barcodes on Passport screen**
+  - [ ] Serve PNGs from `/backend/static/barcode/:id.png`
   - [ ] Display on Passport screen
 
 - [ ] **T16 — Impact receipt component**

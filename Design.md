@@ -121,7 +121,7 @@ Pill shape, `100px` radius, `11px / 600`, white text. Always a colored pill — 
 ### Scan zone
 - Border: `2px dashed #B3E5F7`, `12px` radius.
 - Background: Cream.
-- Icon: Tabler `ti-qrcode`, `28px`, Carter's Blue.
+- Icon: Tabler `ti-barcode`, `28px`, Carter's Blue.
 - Label: `11px`, muted.
 
 ### Sustainability banner (dashboard only)
@@ -155,7 +155,7 @@ The signature component. Mimics a stitched seam rather than a generic dot-connec
 - Score chip: `rgba(255,255,255,0.1)` background, `rgba(255,255,255,0.15)` border, pill shape.
 - Grade badge sits inline in the score row.
 - Impact chips below the timeline in a 3-column grid.
-- QR code image displayed below impact chips, served from `/static/qr/<garment_id>.png`.
+- Barcode image displayed below impact chips, served from `/static/barcode/<garment_id>.png`.
 
 ### Marketplace
 - Page subtitle: garment count in muted text, right-aligned.
