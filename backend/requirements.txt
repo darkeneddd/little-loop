@@ -5,3 +5,14 @@ anthropic
 qrcode[pil]
 python-multipart
 pydantic
+python-dotenv
+
+# Real garment defect model (inference.py) -- CPU-only on the demo laptop.
+# Install torch/torchvision from the CPU-only index FIRST, or pip will pull
+# the much larger CUDA-bundled build by default on Windows:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+#   pip install -r requirements.txt
+torch
+torchvision
+transformers
+pillow

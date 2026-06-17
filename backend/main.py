@@ -2,6 +2,7 @@ import datetime
 import os
 from typing import List, Optional
 
+from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -9,16 +10,21 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 import models
-from assessment import assess_garment_image
+from assessment import run_assessment
 from database import engine, get_db
 from serializers import compute_sustainability_totals, count_completed_cycles, serialize_garment
+
+# Loads ANTHROPIC_API_KEY for the Claude fallback tier (claude_assess.py).
+# Absolute path so this works regardless of the CWD uvicorn is launched from.
+load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="LittleLoop API")
 
-# Serves the QR PNGs seed.py writes to static/qr/<garment_id>.png (T15) --
-# absolute path so this works regardless of the CWD uvicorn is launched from.
+# Serves the barcode PNGs seed.py writes to static/barcode/<garment_id>.png
+# (T15) -- absolute path so this works regardless of the CWD uvicorn is
+# launched from.
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
@@ -59,7 +65,8 @@ def list_garments(
 @app.get("/garments/{garment_id}")
 def get_garment(garment_id: str, db: Session = Depends(get_db)):
     """Full digital garment passport: profile + cycle history + sustainability
-    totals. Powers the Passport screen after a QR scan / manual id lookup."""
+    totals. Powers the Passport screen after a barcode scan / manual id
+    lookup."""
     garment = db.query(models.Garment).filter(models.Garment.id == garment_id).first()
     if garment is None:
         raise HTTPException(status_code=404, detail="Garment not found")
@@ -72,10 +79,11 @@ class AssessRequest(BaseModel):
 
 @app.post("/assess")
 def assess(payload: AssessRequest):
-    """AI condition assessment for the Employee Trade-In screen. Currently a
-    deterministic mock (see assessment.py); swap in a real Claude vision call
-    there without touching this route."""
-    return assess_garment_image(payload.image_base64)
+    """AI condition assessment for the Employee Trade-In screen. Tries the
+    finetuned garment-defect model first, falls back to Claude Haiku vision,
+    then a deterministic mock if both are unavailable -- see
+    assessment.run_assessment for the cascade."""
+    return run_assessment(payload.image_base64)
 
 
 class AssessmentResult(BaseModel):
@@ -88,6 +96,7 @@ class AssessmentResult(BaseModel):
     defects: List[str] = []
     recommended_price: Optional[float] = None
     eligible_for_trade_in: Optional[bool] = None
+    assessed_by: Optional[str] = None
 
 
 class TradeInRequest(BaseModel):
@@ -118,6 +127,11 @@ def trade_in(payload: TradeInRequest, db: Session = Depends(get_db)):
     score = payload.assessment_result.condition_score
     next_cycle_number = len(garment.cycles) + 1
     now = datetime.datetime.utcnow()
+    engine_note = (
+        f" (via {payload.assessment_result.assessed_by})"
+        if payload.assessment_result.assessed_by
+        else ""
+    )
 
     if payload.employee_decision == "approve":
         inspected = models.PassportCycle(
@@ -126,7 +140,7 @@ def trade_in(payload: TradeInRequest, db: Session = Depends(get_db)):
             event_type="inspected",
             timestamp=now,
             condition_score_at_event=score,
-            notes=f"AI assessment: grade {payload.assessment_result.grade}. Approved for trade-in.",
+            notes=f"AI assessment: grade {payload.assessment_result.grade}{engine_note}. Approved for trade-in.",
         )
         db.add(inspected)
         db.flush()  # assign inspected.id for the reward's FK below
@@ -157,7 +171,7 @@ def trade_in(payload: TradeInRequest, db: Session = Depends(get_db)):
     else:
         reason = (
             payload.reason
-            or f"AI assessment: grade {payload.assessment_result.grade}. "
+            or f"AI assessment: grade {payload.assessment_result.grade}{engine_note}. "
             "Trade-in rejected; returned to family."
         )
         inspected = models.PassportCycle(

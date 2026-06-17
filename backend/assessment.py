@@ -1,16 +1,17 @@
-"""Mock Claude vision garment assessor.
+"""Mock Claude vision garment assessor, plus the tiered /assess cascade.
 
-Stands in for a real call to the Claude API (vision) for the hackathon demo.
-`assess_garment_image` is deliberately the only public surface here -- when a
-real API key is wired up, swap its body for an actual
-`client.messages.create(...)` call that prompts Claude to return the same
-JSON shape. Callers (POST /assess in main.py) never need to change.
+`assess_garment_image` is a deterministic mock -- final fallback tier if both
+the finetuned model (inference.py) and Claude Haiku (claude_assess.py) are
+unavailable. `run_assessment` is what POST /assess actually calls; it tries
+each tier in order and returns the first one that succeeds.
 
 Deterministic on the input image (via a hash of the base64 string) so the
-same photo always produces the same result across demo runs, rather than
-flickering between "Excellent" and "Rejected" on every retry.
+mock tier always produces the same result for the same photo across demo
+runs, rather than flickering between "Excellent" and "Rejected" on every
+retry.
 """
 
+import base64
 import hashlib
 
 # (score_floor, grade) pairs, checked high to low.
@@ -68,4 +69,29 @@ def assess_garment_image(image_base64):
         "defects": defects,
         "recommended_price": recommended_price,
         "eligible_for_trade_in": eligible_for_trade_in,
+        "assessed_by": "deterministic_mock",
     }
+
+
+def run_assessment(image_base64):
+    """Tiered cascade behind POST /assess: finetuned model -> Claude Haiku
+    vision -> deterministic mock, each only used if the one above it isn't
+    usable. `import inference` / `import claude_assess` happen here (not at
+    module top) so that a machine without torch/transformers installed gets
+    an ImportError caught right here, falling through to Claude, instead of
+    crashing the whole server at startup."""
+    image_bytes = base64.b64decode(image_base64)
+
+    try:
+        import inference
+        return inference.run_inference(image_bytes)
+    except Exception as e:
+        print(f"[assess] finetuned model unavailable, falling back to Claude: {e}")
+
+    try:
+        import claude_assess
+        return claude_assess.run_inference(image_bytes)
+    except Exception as e:
+        print(f"[assess] Claude fallback unavailable, using deterministic mock: {e}")
+
+    return assess_garment_image(image_base64)

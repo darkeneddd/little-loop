@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Html5Qrcode } from 'html5-qrcode'
 import {
   ClipboardCheck,
-  ScanLine,
+  ScanBarcode,
   Upload,
   CheckCircle2,
   XCircle,
@@ -13,7 +13,7 @@ import {
 import { getGarment, assessImage, submitTradeIn } from '../api'
 import ImpactReceipt from '../components/ImpactReceipt'
 
-const QR_REGION_ID = 'trade-in-qr-reader'
+const BARCODE_REGION_ID = 'trade-in-barcode-reader'
 
 // Mirrors Passport.jsx's status badge map -- duplicated rather than shared
 // since each page still owns its own small color maps (see also
@@ -36,7 +36,14 @@ const GRADE_BADGE = {
   Rejected: 'bg-danger',
 }
 
-// QR payloads may be a bare garment ID or a full passport URL.
+// Mirrors assessment.py / inference.py / claude_assess.py's assessed_by values.
+const ENGINE_LABELS = {
+  finetuned_model: 'LittleLoop AI model',
+  claude_fallback: 'Claude AI (fallback)',
+  deterministic_mock: 'Simulated assessment',
+}
+
+// Barcode payloads may be a bare garment ID or a full passport URL.
 function extractGarmentId(text) {
   const trimmed = text.trim()
   const match = trimmed.match(/passport\/([^/?#]+)/)
@@ -61,11 +68,12 @@ export default function TradeIn() {
   const [decisionError, setDecisionError] = useState('')
   const [decisionResult, setDecisionResult] = useState(null) // { decision, garment }
 
-  // QR scanner lifecycle -- same start/teardown pattern as PassportScanner,
-  // but on a decode we load the garment inline instead of navigating away.
+  // Barcode scanner lifecycle -- same start/teardown pattern as
+  // PassportScanner, but on a decode we load the garment inline instead of
+  // navigating away.
   useEffect(() => {
     if (!scanning) return
-    const scanner = new Html5Qrcode(QR_REGION_ID)
+    const scanner = new Html5Qrcode(BARCODE_REGION_ID)
     let cancelled = false
 
     scanner
@@ -79,7 +87,7 @@ export default function TradeIn() {
           loadGarment(extractGarmentId(decodedText))
         },
         () => {
-          // Per-frame "no QR found" callback -- nothing to surface.
+          // Per-frame "no barcode found" callback -- nothing to surface.
         },
       )
       .catch((err) => {
@@ -242,8 +250,8 @@ export default function TradeIn() {
                 }}
                 className="inline-flex items-center gap-2 rounded-full border-[1.5px] border-carter-blue px-4 py-2 text-sm font-medium text-carter-blue"
               >
-                <ScanLine className="h-4 w-4" />
-                Scan QR Code
+                <ScanBarcode className="h-4 w-4" />
+                Scan Barcode
               </button>
             ) : (
               <button
@@ -258,7 +266,7 @@ export default function TradeIn() {
 
           {scanning && (
             <div
-              id={QR_REGION_ID}
+              id={BARCODE_REGION_ID}
               className="mx-auto mt-4 max-w-sm overflow-hidden rounded-md border-2 border-dashed border-blue-mid"
             />
           )}
@@ -351,6 +359,11 @@ export default function TradeIn() {
                     {assessment.grade}
                   </span>
                 </div>
+                {assessment.assessed_by && (
+                  <p className="mt-1 text-[11px] text-text-muted">
+                    {ENGINE_LABELS[assessment.assessed_by] || assessment.assessed_by}
+                  </p>
+                )}
                 <p className="mt-2 font-mono text-3xl font-medium text-deep-navy">
                   {assessment.condition_score}
                   <span className="text-sm font-normal text-text-muted"> / 100</span>
